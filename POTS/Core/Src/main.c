@@ -126,12 +126,11 @@ int main(void)
   //initialization of signaling module///////////////////////////
   ///////////////////////////////////////////////////////////////
   mySignaling.toneFrequency=450;
-
+  mySignaling.fclk=8000000;
+  //mySignaling.timer=htim3;
   signalingInit(&mySignaling);
 
 
-  HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
-  TIM3->CCR4=256;
 
   /* USER CODE END 2 */
 

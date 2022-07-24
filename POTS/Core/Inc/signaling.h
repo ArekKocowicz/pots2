@@ -28,6 +28,8 @@ typedef struct signaling_t {
 	uint16_t callBackCounterDuration;   //callback counter for tone duration
 	signaling_state_t state;
 
+	TIM_HandleTypeDef *timer;
+
 }signaling_t;
 
 void signalingCallback(signaling_t *ring);
