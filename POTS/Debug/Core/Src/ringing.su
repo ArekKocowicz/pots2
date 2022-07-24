@@ -1,0 +1,2 @@
+ringing.c:17:6:ringInit	16	static
+ringing.c:30:6:ringCallback	16	static
