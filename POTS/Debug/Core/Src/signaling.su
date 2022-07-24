@@ -1,0 +1,2 @@
+signaling.c:12:6:signalingCallback	16	static
+signaling.c:21:6:signalingInit	16	static

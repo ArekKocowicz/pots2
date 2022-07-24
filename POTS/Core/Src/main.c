@@ -22,6 +22,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "ringing.h"
+#include "signaling.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -44,6 +45,7 @@ TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 ringer_t myRing;
+signaling_t mySignaling;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,7 +100,8 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   ///////////////////////////////////////////////////////////////
-
+  //initialization of ringing module/////////////////////////////
+  ///////////////////////////////////////////////////////////////
   myRing.callBackFrequency=40000;
   myRing.burstFrequency=25;
 
@@ -117,6 +120,15 @@ int main(void)
 
   ringInit(&myRing);
   HAL_TIM_Base_Start_IT(&htim2);
+
+
+  ///////////////////////////////////////////////////////////////
+  //initialization of signaling module///////////////////////////
+  ///////////////////////////////////////////////////////////////
+  mySignaling.toneFrequency=450;
+
+  signalingInit(&mySignaling);
+
 
   HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
   TIM3->CCR4=256;
