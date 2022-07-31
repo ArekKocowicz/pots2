@@ -77,8 +77,4 @@ void ringCallback(ringer_t *ring)
 	//generating burst duration and pause
 
 
-
-
-
-
 }

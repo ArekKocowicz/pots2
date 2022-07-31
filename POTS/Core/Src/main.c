@@ -104,15 +104,11 @@ int main(void)
   ///////////////////////////////////////////////////////////////
   myRing.callBackFrequency=40000;
   myRing.burstFrequency=25;
-
   myRing.state=RINGER_OFF;
-  /*
-  myRing.FR_GPIO_Port=POTS_LED_STAT_GPIO_Port;
+  /*myRing.FR_GPIO_Port=POTS_LED_STAT_GPIO_Port;
   myRing.FR_Pin=POTS_LED_STAT_Pin;
   myRing.RM_GPIO_Port=LED_GPIO_Port;
-  myRing.RM_Pin=LED_Pin;
-  */
-
+  myRing.RM_Pin=LED_Pin;*/
   myRing.FR_GPIO_Port=POTS_FR_GPIO_Port;
   myRing.FR_Pin=POTS_FR_Pin;
   myRing.RM_GPIO_Port=POTS_RM_GPIO_Port;
@@ -125,9 +121,14 @@ int main(void)
   ///////////////////////////////////////////////////////////////
   //initialization of signaling module///////////////////////////
   ///////////////////////////////////////////////////////////////
-  mySignaling.toneFrequency=450;
+
+  mySignaling.toneFrequency=450; //this is required tone frequency
+  mySignaling.toneOnDuration=100;
+  mySignaling.toneOffDuration=100;
+  mySignaling.callBackFrequency=450; //currently the function is implemented that TIM3 cinterrupt frequency is equal to requested tone frequency
   mySignaling.fclk=8000000;
-  //mySignaling.timer=htim3;
+  mySignaling.timer=&htim3;
+  mySignaling.state=SIGNALING_STATE_TONE;
   signalingInit(&mySignaling);
 
 
@@ -336,7 +337,12 @@ static void MX_GPIO_Init(void)
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
 	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
-	ringCallback(&myRing);
+	if(htim->Instance==TIM2)
+		ringCallback(&myRing);
+	if(htim->Instance==TIM3)
+		signalingCallback(&mySignaling);
+	//////////
+
 }
 /* USER CODE END 4 */
 

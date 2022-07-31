@@ -20,6 +20,7 @@ typedef enum
 
 typedef struct signaling_t {
 	uint32_t callBackFrequency; //callback frequency in [Hz]
+	uint32_t fclk;				//timer clock frequency
 
 	uint16_t toneFrequency;    //required frequency of a call burst in Hz
 	uint16_t toneOnDuration;   //burst package duration in not yet defined unit

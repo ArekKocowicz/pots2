@@ -10,19 +10,54 @@
 
 
 void signalingCallback(signaling_t *signaling){
+	signaling->callBackCounterDuration++;
 
+	switch(signaling->state)
+	{
+	case SIGNALING_STATE_TONE: //in this state a tone is beeing generated
+		if(signaling->callBackCounterDuration>=signaling->toneOnDuration){ //if the tone has been generated long enough
+			HAL_TIM_PWM_Stop(signaling->timer, TIM_CHANNEL_4); 	//stop generating tone
+			signaling->state=SIGNALING_STATE_PAUSE;				//change state to SIGNALING_STATE_PASUE
+			signaling->callBackCounterDuration=0; 				//reset counter
+			}
 
+		break;
+	case SIGNALING_STATE_PAUSE:
+		if(signaling->callBackCounterDuration>=signaling->toneOffDuration){ //if the pause has been generated long enough
+			HAL_TIM_PWM_Start(signaling->timer, TIM_CHANNEL_4); 	//start generating tone
+			signaling->state=SIGNALING_STATE_TONE;				//change state to SIGNALING_STATE_PASUE
+			signaling->callBackCounterDuration=0; 				//reset counter
+			}
+
+		break;
+	case SIGNALING_STATE_OFF:
+	default:
+		HAL_TIM_PWM_Stop(signaling->timer, TIM_CHANNEL_4); 	//stop generating tone
+		signaling->callBackCounterDuration=0;
+		break;
+
+	}
 
 }
 
 
-
-
-
-
+//currently this function assumes that PWM channel 4 is used
+//it is not reconfigurable on the fly for other PWM channels
 void signalingInit(signaling_t *signaling){
-	//I'd like to find an elegant way for passing name of the timer as an argument
-	TIM3->PSC=(signaling->fclk)/(signaling->toneFrequency);
-	TIM3->CCR4=(TIM3->PSC)/2;
-	//HAL_TIM_PWM_Start(&htim3, TIM_CHANNEL_4);
+
+	uint32_t psc; //psc is prescaler value needed for PWM channel to generate required frequency
+	uint16_t ccr; //ccr is defining duty cycle of generated PWM
+
+	psc=(signaling->fclk)/(signaling->toneFrequency);	//calculate necessary prescaller value
+	if(psc<UINT16_MAX){ //timer can accept only 16 bit results
+		ccr=psc/2;
+		signaling->timer->Instance->PSC=psc;
+		signaling->timer->Instance->CCR4=ccr; //50% duty cycle fo generated square signal
+		HAL_TIM_PWM_Start(signaling->timer, TIM_CHANNEL_4);
+		//return 0;
+	}
+	//return 1;
+
+
+
 }
