@@ -71,6 +71,10 @@ void Error_Handler(void);
 #define POTS_FR_GPIO_Port GPIOB
 #define POTS_LED_STAT_Pin GPIO_PIN_15
 #define POTS_LED_STAT_GPIO_Port GPIOB
+#define POTS_DEBUG_TX_Pin GPIO_PIN_9
+#define POTS_DEBUG_TX_GPIO_Port GPIOA
+#define POTS_DEBUG_RX_Pin GPIO_PIN_10
+#define POTS_DEBUG_RX_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

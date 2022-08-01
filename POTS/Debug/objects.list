@@ -1,4 +1,5 @@
 "./Core/Src/main.o"
+"./Core/Src/pulse_dialing.o"
 "./Core/Src/ringing.o"
 "./Core/Src/signaling.o"
 "./Core/Src/stm32f1xx_hal_msp.o"
@@ -20,3 +21,4 @@
 "./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_rcc_ex.o"
 "./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim.o"
 "./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_tim_ex.o"
+"./Drivers/STM32F1xx_HAL_Driver/Src/stm32f1xx_hal_uart.o"
