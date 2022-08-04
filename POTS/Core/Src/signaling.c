@@ -17,6 +17,7 @@ void signalingCallback(signaling_t *signaling){
 	case SIGNALING_STATE_TONE: //in this state a tone is beeing generated
 		if(signaling->callBackCounterDuration>=signaling->toneOnDuration){ //if the tone has been generated long enough
 			HAL_TIM_PWM_Stop(signaling->timer, TIM_CHANNEL_4); 	//stop generating tone
+
 			signaling->state=SIGNALING_STATE_PAUSE;				//change state to SIGNALING_STATE_PASUE
 			signaling->callBackCounterDuration=0; 				//reset counter
 			}
@@ -32,7 +33,7 @@ void signalingCallback(signaling_t *signaling){
 		break;
 	case SIGNALING_STATE_OFF:
 	default:
-		HAL_TIM_PWM_Stop(signaling->timer, TIM_CHANNEL_4); 	//stop generating tone
+		//HAL_TIM_PWM_Stop(signaling->timer, TIM_CHANNEL_4); 	//stop generating tone
 		signaling->callBackCounterDuration=0;
 		break;
 
@@ -48,9 +49,9 @@ void signalingInit(signaling_t *signaling){
 	uint32_t psc; //psc is prescaler value needed for PWM channel to generate required frequency
 	uint16_t ccr; //ccr is defining duty cycle of generated PWM
 
-	psc=(signaling->fclk)/(signaling->toneFrequency);	//calculate necessary prescaller value
+	psc=(signaling->fclk)/(1023*(signaling->toneFrequency));	//calculate necessary prescaler value
 	if(psc<UINT16_MAX){ //timer can accept only 16 bit results
-		ccr=psc/2;
+		ccr=512;
 		signaling->timer->Instance->PSC=psc;
 		signaling->timer->Instance->CCR4=ccr; //50% duty cycle fo generated square signal
 		HAL_TIM_PWM_Start(signaling->timer, TIM_CHANNEL_4);

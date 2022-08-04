@@ -11,11 +11,13 @@
 #ifndef INC_PULSE_DIALING_H_
 #define INC_PULSE_DIALING_H_
 
-#define PULSE_DIALING_MAX_NUMBER_LENGTH (16)
-#define PULSE_DIALING_PULSE_LENGTH_MIN_MILISECOND (20) //pulse is when SHK goes LOW - too short pulses will be ignored
-#define PULSE_DIALING_PULSE_LENGTH_MAX_MILISECOND (80)
-#define PULSE_DIALING_PAUSE_LENGTH_MIN_MILISECOND (20) //pulse is when SHK goes HIGH again
-#define PULSE_DIALING_PAUSE_LENGTH_MAX_MILISECOND (80) //longer pause means a digit has been completelly dialed
+typedef enum
+{
+	SHK_LOW = 0u,
+	SHK_HIGH,
+	SHK_SLOPE_RISING,
+	SHK_SLOPE_FALLING
+} SHK_state_t;
 
 
 
@@ -30,14 +32,13 @@
 typedef struct pulse_dialing_machine_t {
 	GPIO_PinState SHK_PreviousLevel;     					//SHK pin state stored when the pulse dialing callback
 
+
+
 	GPIO_TypeDef *SHK_GPIO_Port;							//Port on which SHK pin is connected
 	uint16_t SHK_Pin;										//Pin on which SHK pin is connected
 
 	uint16_t callbackFrequencyHertz;						//
-	uint16_t SHK_CurrentLevelDurationMiliseconds;
-	uint16_t SHK_PreviousLevelDurationMiliseconds;
-	uint8_t currentDigitCounter;                           	//pulse-pause periods will be counted here, this will be
-	uint8_t dialedNumber[PULSE_DIALING_MAX_NUMBER_LENGTH]; 	//dialed number will be stored as a string here
+
 }pulse_dialing_machine_t;
 
 

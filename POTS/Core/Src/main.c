@@ -18,8 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "stdio.h"
-#include "string.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -35,6 +33,7 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
+void debug_message(uint8_t *message);
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -51,6 +50,7 @@ UART_HandleTypeDef huart1;
 /* USER CODE BEGIN PV */
 ringer_t myRing;
 signaling_t mySignaling;
+pulse_dialing_machine_t myDialing;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,11 +92,6 @@ int main(void)
 
   /* USER CODE BEGIN SysInit */
 
-
-
-
-
-
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -122,7 +117,7 @@ int main(void)
   myRing.RM_Pin=POTS_RM_Pin;
 
   ringInit(&myRing);
-  HAL_TIM_Base_Start_IT(&htim2);
+  //HAL_TIM_Base_Start_IT(&htim2);
 
 
   ///////////////////////////////////////////////////////////////
@@ -130,19 +125,29 @@ int main(void)
   ///////////////////////////////////////////////////////////////
 
   mySignaling.toneFrequency=450; //this is required tone frequency
-  mySignaling.toneOnDuration=100;
-  mySignaling.toneOffDuration=100;
-  mySignaling.callBackFrequency=450; //currently the function is implemented that TIM3 cinterrupt frequency is equal to requested tone frequency
+  mySignaling.toneOnDuration=450;
+  mySignaling.toneOffDuration=450;
+  mySignaling.callBackFrequency=450; //currently the function is implemented that TIM3 interrupt frequency is equal to requested tone frequency
   mySignaling.fclk=8000000;
   mySignaling.timer=&htim3;
   mySignaling.state=SIGNALING_STATE_TONE;
   signalingInit(&mySignaling);
 
 
-  char buffer[16];
-  snprintf(buffer, sizeof(buffer), "test %d", 45);
-  HAL_UART_Transmit_IT(&huart1, buffer, strlen(buffer));
+  ///////////////////////////////////////////////////////////////
+  //initialization of dialing receiver///////////////////////////
+  ///////////////////////////////////////////////////////////////
 
+  myDialing.SHK_GPIO_Port=POTS_SHK_GPIO_Port;
+  myDialing.SHK_Pin=POTS_SHK_Pin;
+  //myDialing.callbackFrequencyHertz=
+
+  pulseDialingInit(&myDialing);
+  HAL_TIM_Base_Start_IT(&htim3);
+
+
+  //assert_param(0);
+  //debug_message("I'm in main");
 
   //HAL_UART_Transmit_IT()
 
@@ -380,13 +385,26 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void debug_message(uint8_t *message)
+{
+	char buffer[128];
+	snprintf(buffer, sizeof(buffer), "debug %s\n", message);
+	HAL_UART_Transmit_IT(&huart1, buffer, strlen(buffer));
+}
+
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 {
+	//HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
 	//HAL_GPIO_WritePin(LED_GPIO_Port, LED_Pin, GPIO_PIN_RESET);
 	if(htim->Instance==TIM2)
 		ringCallback(&myRing);
-	if(htim->Instance==TIM3)
+	if(htim->Instance==TIM3){
+		//debug_message("I'm in main");
 		signalingCallback(&mySignaling);
+		HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+	}
+
 	//////////
 
 }
