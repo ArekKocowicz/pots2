@@ -30,19 +30,25 @@ typedef enum
 
 
 typedef struct pulse_dialing_machine_t {
-	GPIO_PinState SHK_PreviousLevel;     					//SHK pin state stored when the pulse dialing callback
-
 
 
 	GPIO_TypeDef *SHK_GPIO_Port;							//Port on which SHK pin is connected
 	uint16_t SHK_Pin;										//Pin on which SHK pin is connected
+	GPIO_PinState SHK_PreviousLevel;     					//SHK pin state stored when the pulse dialing callback
 
 	uint16_t callbackFrequencyHertz;						//
+
+	SHK_state_t SHK_State;
+
+	uint8_t counter;
+	uint16_t timeSinceLastRisingSlope;
+
+	int8_t dialedDigit;
 
 }pulse_dialing_machine_t;
 
 
 void pulseDialingInit(pulse_dialing_machine_t *pulseDialing);
-void pulseDIalingCallback(pulse_dialing_machine_t *pulseDialing);
+void pulseDialingCallback(pulse_dialing_machine_t *pulseDialing);
 
 #endif /* INC_PULSE_DIALING_H_ */

@@ -1,2 +1,2 @@
 pulse_dialing.c:15:6:pulseDialingInit	16	static
-pulse_dialing.c:24:6:pulseDialingCallback	24	static
+pulse_dialing.c:26:6:pulseDialingCallback	24	static
