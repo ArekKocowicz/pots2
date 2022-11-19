@@ -11,6 +11,9 @@
 #ifndef INC_PULSE_DIALING_H_
 #define INC_PULSE_DIALING_H_
 
+#define PULSE_DIALING_HANDSET_QUALIFICATION_MILLISECONDS (200)
+#define PULSE_DIALING_DIGIT_QUALIFICATION_MILLISECONDS (100)
+
 typedef enum
 {
 	SHK_LOW = 0u,
@@ -18,6 +21,13 @@ typedef enum
 	SHK_SLOPE_RISING,
 	SHK_SLOPE_FALLING
 } SHK_state_t;
+
+
+typedef enum
+{
+	HANDSET_ON_HOOK = 0u,
+	HANDSET_LIFTED
+} Handset_state_t;
 
 
 
@@ -36,14 +46,17 @@ typedef struct pulse_dialing_machine_t {
 	uint16_t SHK_Pin;										//Pin on which SHK pin is connected
 	GPIO_PinState SHK_PreviousLevel;     					//SHK pin state stored when the pulse dialing callback
 
-	uint16_t callbackFrequencyHertz;						//
+	uint16_t frequencyCallback_hertz;						//callback frequency expressed in Hertz
 
-	SHK_state_t SHK_State;
+	SHK_state_t SHK_State;									//state of the SHK pin recognized in the invocation of the pulse dialing machine
+	Handset_state_t Handset_State;							//current state of the handset
 
 	uint8_t counter;
-	uint16_t timeSinceLastRisingSlope;
+	uint16_t time_SHK_staticLevelDuration_milliseconds;
+	uint16_t timeSinceLastRisingSlope_milliseconds;
 
 	int8_t dialedDigit;
+	int8_t newEventHandset;
 
 }pulse_dialing_machine_t;
 

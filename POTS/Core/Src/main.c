@@ -141,11 +141,11 @@ int main(void)
   ///////////////////////////////////////////////////////////////
   myDialing.SHK_GPIO_Port=POTS_SHK_GPIO_Port;
   myDialing.SHK_Pin=POTS_SHK_Pin;
-  myDialing.callbackFrequencyHertz=CALLBACK_FREQUENCY_HZ;
+  myDialing.frequencyCallback_hertz=CALLBACK_FREQUENCY_HZ;
   pulseDialingInit(&myDialing);
 
   //assert_param(0);
-  debug_message("reset");
+  debug_message("Reset");
   //HAL_UART_Transmit_IT()
 
   /* USER CODE END 2 */
@@ -164,6 +164,17 @@ int main(void)
 		snprintf(buffer, sizeof(buffer), "dialed %d\n", myDialing.dialedDigit);
 		HAL_UART_Transmit_IT(&huart1, buffer, strlen(buffer));
 		myDialing.dialedDigit=-1;
+	}
+
+	if(myDialing.newEventHandset){
+		myDialing.newEventHandset=0;
+		if(myDialing.Handset_State==HANDSET_LIFTED)
+			debug_message("HANDSET_LIFTED");
+		if(myDialing.Handset_State==HANDSET_ON_HOOK)
+			debug_message("HANDSET_ON_HOOK");
+
+		//snprintf(buffer, sizeof(buffer), "newEvent\n");
+		//HAL_UART_Transmit_IT(&huart1, buffer, strlen(buffer));
 	}
 
 
