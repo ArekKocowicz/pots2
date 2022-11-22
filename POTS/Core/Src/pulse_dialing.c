@@ -85,7 +85,7 @@ void pulseDialingCallback(pulse_dialing_machine_t *pulseDialing)
 			pulseDialing->timeSinceLastRisingSlope_milliseconds+=(1000/pulseDialing->frequencyCallback_hertz);
 			if(pulseDialing->timeSinceLastRisingSlope_milliseconds>PULSE_DIALING_DIGIT_QUALIFICATION_MILLISECONDS){
 				//a digit has been completely dialed and is stored in counter here
-				HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+				//HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
 				pulseDialing->dialedDigit=pulseDialing->counter;
 				pulseDialing->counter=0;
 				pulseDialing->timeSinceLastRisingSlope_milliseconds=0;

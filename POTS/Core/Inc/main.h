@@ -59,8 +59,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define LED_Pin GPIO_PIN_13
-#define LED_GPIO_Port GPIOC
+#define BLUEPILL_LED_Pin GPIO_PIN_13
+#define BLUEPILL_LED_GPIO_Port GPIOC
+#define GSM_WAKE_Pin GPIO_PIN_4
+#define GSM_WAKE_GPIO_Port GPIOA
 #define AU_PWM_Pin GPIO_PIN_1
 #define AU_PWM_GPIO_Port GPIOB
 #define POTS_SHK_Pin GPIO_PIN_12
@@ -69,12 +71,6 @@ void Error_Handler(void);
 #define POTS_RM_GPIO_Port GPIOB
 #define POTS_FR_Pin GPIO_PIN_14
 #define POTS_FR_GPIO_Port GPIOB
-#define POTS_LED_STAT_Pin GPIO_PIN_15
-#define POTS_LED_STAT_GPIO_Port GPIOB
-#define POTS_DEBUG_TX_Pin GPIO_PIN_9
-#define POTS_DEBUG_TX_GPIO_Port GPIOA
-#define POTS_DEBUG_RX_Pin GPIO_PIN_10
-#define POTS_DEBUG_RX_GPIO_Port GPIOA
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */
