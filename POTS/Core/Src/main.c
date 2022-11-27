@@ -116,8 +116,12 @@ int main(void)
   HAL_TIM_Base_Start_IT(&htim2);
 
   myGSM.huart=&huart2;
-  myGSM.port_GSM_WAKE=GSM_WAKE_GPIO_Port;
-  myGSM.pin_GSM_WAKE=GSM_WAKE_Pin;
+  myGSM.port_GSM_POWER_ON=GSM_POWER_ON_GPIO_Port;
+  myGSM.pin_GSM_POWER_ON=GSM_POWER_ON_Pin;
+  myGSM.port_GSM_LPG=GSM_LPG_GPIO_Port;
+  myGSM.pin_GSM_LPG=GSM_LPG_Pin;
+  myGSM.timeKeepingPeriodMilliseconds=1000/CALLBACK_FREQUENCY_HZ;
+
   gsmInit(&myGSM);
 
   debug_message("Reset");
@@ -417,7 +421,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(BLUEPILL_LED_GPIO_Port, BLUEPILL_LED_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GSM_WAKE_GPIO_Port, GSM_WAKE_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GSM_POWER_ON_GPIO_Port, GSM_POWER_ON_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOB, POTS_RM_Pin|POTS_FR_Pin, GPIO_PIN_RESET);
@@ -429,12 +433,18 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(BLUEPILL_LED_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : GSM_WAKE_Pin */
-  GPIO_InitStruct.Pin = GSM_WAKE_Pin;
+  /*Configure GPIO pin : GSM_LPG_Pin */
+  GPIO_InitStruct.Pin = GSM_LPG_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GSM_LPG_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : GSM_POWER_ON_Pin */
+  GPIO_InitStruct.Pin = GSM_POWER_ON_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GSM_WAKE_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GSM_POWER_ON_GPIO_Port, &GPIO_InitStruct);
 
   /*Configure GPIO pin : POTS_SHK_Pin */
   GPIO_InitStruct.Pin = POTS_SHK_Pin;
@@ -455,7 +465,7 @@ static void MX_GPIO_Init(void)
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
-	HAL_GPIO_TogglePin(BLUEPILL_LED_GPIO_Port, BLUEPILL_LED_Pin);
+//	HAL_GPIO_TogglePin(BLUEPILL_LED_GPIO_Port, BLUEPILL_LED_Pin);
 
 	if(huart->Instance==USART1){
 		HAL_UART_Receive_IT(&huart1, &UART1_rxChar, 1);
@@ -484,6 +494,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			pulseDialingCallback(&myDialing);
 			signalingCallback(&mySignaling);
 			ringCallback(&myRing);
+			gsmTimeKeeping(&myGSM);
 		}
 	}
 }

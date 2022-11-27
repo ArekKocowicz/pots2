@@ -61,8 +61,10 @@ void Error_Handler(void);
 /* Private defines -----------------------------------------------------------*/
 #define BLUEPILL_LED_Pin GPIO_PIN_13
 #define BLUEPILL_LED_GPIO_Port GPIOC
-#define GSM_WAKE_Pin GPIO_PIN_4
-#define GSM_WAKE_GPIO_Port GPIOA
+#define GSM_LPG_Pin GPIO_PIN_0
+#define GSM_LPG_GPIO_Port GPIOA
+#define GSM_POWER_ON_Pin GPIO_PIN_1
+#define GSM_POWER_ON_GPIO_Port GPIOA
 #define AU_PWM_Pin GPIO_PIN_1
 #define AU_PWM_GPIO_Port GPIOB
 #define POTS_SHK_Pin GPIO_PIN_12
