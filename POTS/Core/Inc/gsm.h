@@ -14,12 +14,12 @@
 
 typedef enum
 {
-	GSM_MODULE_OFF = 0u,
-	GSM_MODULE_LPG_ON,
-	GSM_MODULE_AT_READY,
-	GSM_MODULE_SIM_READY,
-	GSM_MODULE_RING,
-	GSM_MODULE_REQUEST_TURNING_OFF
+	GSM_LOGIC_MODULE_INIT = 0u,
+	GSM_LOGIC_MODULE_AT_READY,
+	GSM_LOGIC_MODULE_SIM_READY,
+	GSM_LOGIC_MODULE_RING,
+	GSM_LOGIC_MODULE_CALL_ONGOING,
+
 
 }gsm_module_logic_state_t;
 
@@ -27,7 +27,9 @@ typedef enum
 {
 	GSM_POWER_INIT = 0u,  					//remain in this state 4 seconds and check if GSM_LPG indicates, that the module is on
 	GSM_POWER_ASSERTING_POWER_ON,			//pull POWER_ON pin of the module down for 1 second
-	GSM_POWER_TURNED_ON						//module turned on
+	GSM_POWER_TURNED_ON,					//module turned on
+	GSM_POWER_TURNING_OFF,
+	GSM_POWER_TURNED_OFF
 
 }gsm_module_power_state_t;
 
@@ -70,5 +72,7 @@ void gsmLogicStateChange(gsm_t *myModule, gsm_module_logic_state_t newState);
 void gsmService(gsm_t *myModule);
 void gsmTimeKeeping(gsm_t *myModule);
 void gsmFrontPanel(gsm_t *myModule);
+void gsmAnswerIncomingCall(gsm_t *myModule);
+void gsmEndCall(gsm_t *myModule);
 
 #endif /* INC_GSM_H_ */

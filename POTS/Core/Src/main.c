@@ -169,6 +169,36 @@ int main(void)
   {
     gsmService(&myGSM);
 
+    if(myGSM.logicState==GSM_LOGIC_MODULE_RING)
+    {
+    	if(myDialing.Handset_State==HANDSET_ON_HOOK) //if handset on hook
+    	{
+    		ringFrontPanel(&myRing, RINGER_RINGING_BURST); //keep on ringing
+    	}
+    	else //handset lifted
+    	{
+    		gsmAnswerIncomingCall(&myGSM);
+    		ringFrontPanel(&myRing, RINGER_OFF);
+    	}
+    }
+    else if(myGSM.logicState==GSM_LOGIC_MODULE_CALL_ONGOING)
+    {
+    	if(myDialing.Handset_State==HANDSET_ON_HOOK) //if handset back on the hook => end the call
+		{
+    		gsmEndCall(&myGSM);
+		}
+    }
+    else //no incoming call from GSM module anymore
+    {
+    	ringFrontPanel(&myRing, RINGER_OFF);
+    	if(myDialing.Handset_State==HANDSET_ON_HOOK) //if handset on hook
+		{
+    		gsmEndCall(&myGSM);
+		}
+    }
+
+
+
     if(myDialing.dialedDigit>-1){
 		snprintf(buffer, sizeof(buffer), "myDialing %d\n", myDialing.dialedDigit);
 		HAL_UART_Transmit_IT(&huart1, buffer, strlen(buffer));
