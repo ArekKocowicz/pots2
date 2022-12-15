@@ -73,6 +73,8 @@ void Error_Handler(void);
 #define POTS_RM_GPIO_Port GPIOB
 #define POTS_FR_Pin GPIO_PIN_14
 #define POTS_FR_GPIO_Port GPIOB
+#define LED_STAT_Pin GPIO_PIN_15
+#define LED_STAT_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

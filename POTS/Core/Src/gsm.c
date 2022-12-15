@@ -14,7 +14,7 @@ void gsmInit(gsm_t *myModule)
 	gsmPowerStateChange(myModule, GSM_POWER_INIT);
 	gsmLogicStateChange(myModule, GSM_LOGIC_MODULE_INIT);
 	myModule->uart_RX_counter=0;
-	myModule->servicePending=0;
+//	myModule->servicePending=0;
 }
 
 void gsmUartReceiver(gsm_t *myModule, uint8_t receivedCharacter)
@@ -22,7 +22,7 @@ void gsmUartReceiver(gsm_t *myModule, uint8_t receivedCharacter)
 	if(myModule->uart_RX_counter<sizeof(myModule->uart_RX_buffer)-1){ 		//if there is space left in a receiver buffer ( -1, because we will ad \0 at the end
 		myModule->uart_RX_buffer[myModule->uart_RX_counter]=receivedCharacter;
 		myModule->uart_RX_counter++;
-		myModule->servicePending=1;
+//		myModule->servicePending=1;
 	}
 	else //no space for a new character - flush the buffer to avoid overrun
 	{
@@ -77,8 +77,8 @@ void gsmService(gsm_t *myModule) //this will be called in main
 	}
 
 
-	if(myModule->servicePending){
-		myModule->servicePending=0;
+//	if(myModule->servicePending){
+//		myModule->servicePending=0;
 
 		if(myModule->uart_RX_buffer[myModule->uart_RX_counter-1]=='\n'){	//if last received character is a \n then a complete line is received
 			myModule->uart_RX_buffer[myModule->uart_RX_counter]='\0';					//append \0 so we can treat it as a string
@@ -108,7 +108,7 @@ void gsmService(gsm_t *myModule) //this will be called in main
 			myModule->uart_RX_counter=0;
 
 		}
-	}
+//	}
 }
 
 void gsmTimeKeeping(gsm_t *myModule)  //this will be called in timer interrupt
@@ -147,4 +147,10 @@ void gsmEndCall(gsm_t *myModule)
 	}
 }
 
+void gsmStartCall(gsm_t *myModule, char *number)
+{
+	gsmLogicStateChange(myModule, GSM_LOGIC_MODULE_CALL_ONGOING);
+	snprintf(myModule->uart_TX_buffer, sizeof(myModule->uart_TX_buffer), "ATD%s;\r\n", number);
+	HAL_UART_Transmit_IT(myModule->huart, myModule->uart_TX_buffer, strlen(myModule->uart_TX_buffer));
+}
 

@@ -26,7 +26,8 @@ typedef enum
 typedef enum
 {
 	HANDSET_ON_HOOK = 0u,
-	HANDSET_LIFTED
+	HANDSET_LIFTED,
+//	HANDSET_OUTGOING_CALL
 } Handset_state_t;
 
 

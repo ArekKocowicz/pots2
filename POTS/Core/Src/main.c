@@ -33,12 +33,20 @@
 /* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
+typedef enum
+{
+	GATEWAY_STATE_INIT = 0u,
+	GATEWAY_STATE_INCOMING_CALL,
+	GATEWAY_STATE_OUTGOING_CALL
+}gateway_state_t;
+
 /* USER CODE END PTD */
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 #define TIM2_INTERRUPT_FREQUENCY_HZ (10000)
 #define CALLBACK_FREQUENCY_HZ (250)
+#define DIALING_COMPLETED_TIMEOUT_MILLISECOND (3000)
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -59,6 +67,11 @@ gsm_t myGSM;
 pulse_dialing_machine_t myDialing;
 signaling_t mySignaling;
 ringer_t myRing;
+
+uint16_t timeSinceLastDigitDialedMillisecond=0;
+char dialedDigits[16];
+uint8_t dialedDigitsCounter=0;
+gateway_state_t gatewayState=GATEWAY_STATE_INIT;
 
 uint16_t myTIM2Counter=0;
 /* USER CODE END PV */
@@ -135,7 +148,7 @@ int main(void)
   mySignaling.frequencyCallback_hertz=CALLBACK_FREQUENCY_HZ; //currently the function is implemented that TIM3 interrupt frequency is equal to requested tone frequency
   mySignaling.fclk_hertz=32000000;
   mySignaling.timer=&htim3;
-  mySignaling.state=SIGNALING_INTERNAL_STATE_CONTINUOUS;
+  mySignaling.state=SIGNALING_INTERNAL_STATE_OFF;
   signalingInit(&mySignaling);
 
   ///////////////////////////////////////////////////////////////
@@ -167,43 +180,23 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    gsmService(&myGSM);
-
-    if(myGSM.logicState==GSM_LOGIC_MODULE_RING)
-    {
-    	if(myDialing.Handset_State==HANDSET_ON_HOOK) //if handset on hook
-    	{
-    		ringFrontPanel(&myRing, RINGER_RINGING_BURST); //keep on ringing
-    	}
-    	else //handset lifted
-    	{
-    		gsmAnswerIncomingCall(&myGSM);
-    		ringFrontPanel(&myRing, RINGER_OFF);
-    	}
-    }
-    else if(myGSM.logicState==GSM_LOGIC_MODULE_CALL_ONGOING)
-    {
-    	if(myDialing.Handset_State==HANDSET_ON_HOOK) //if handset back on the hook => end the call
-		{
-    		gsmEndCall(&myGSM);
-		}
-    }
-    else //no incoming call from GSM module anymore
-    {
-    	ringFrontPanel(&myRing, RINGER_OFF);
-    	if(myDialing.Handset_State==HANDSET_ON_HOOK) //if handset on hook
-		{
-    		gsmEndCall(&myGSM);
-		}
-    }
-
+    gsmService(&myGSM);														//service GSM module
+    if(myGSM.LPG_PinState==GPIO_PIN_SET)										//copy LPG pin state with invertet logic to the status LED
+    	HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_RESET);
+    else
+		HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_SET);
 
 
     if(myDialing.dialedDigit>-1){
 		snprintf(buffer, sizeof(buffer), "myDialing %d\n", myDialing.dialedDigit);
 		HAL_UART_Transmit_IT(&huart1, buffer, strlen(buffer));
+		if(dialedDigitsCounter<sizeof(dialedDigits)){ 						//if there is room for the next digit
+			dialedDigits[dialedDigitsCounter]='0'+myDialing.dialedDigit; 	//store dialed digit, already in string format
+			dialedDigitsCounter++;											//increase digit dialing counter
+		}
+		timeSinceLastDigitDialedMillisecond=0;											//zero timer
 		myDialing.dialedDigit=-1;
-    }
+	}
 
 	if(myDialing.newEventHandset){
 		myDialing.newEventHandset=0;
@@ -212,9 +205,62 @@ int main(void)
 			HAL_UART_Transmit_IT(&huart1, buffer, strlen(buffer));
 		}
 		if(myDialing.Handset_State==HANDSET_ON_HOOK){
-			snprintf(buffer, sizeof(buffer), "myDialing HANDSET_ON_HOOK\n");
+//			dialedDigitsCounter=0; 											//forget all dialed digits if handset back on hook
+//			gatewayState=GATEWAY_STATE_INIT;								//go back to the GATEWAY_INIT state
+//			snprintf(buffer, sizeof(buffer), "myDialing HANDSET_ON_HOOK\n");
+//			HAL_UART_Transmit_IT(&huart1, buffer, strlen(buffer));
+		}
+	}
+
+
+	switch(gatewayState){
+	case GATEWAY_STATE_INIT:
+																			//a number has been completely dialed
+		if(myDialing.Handset_State==HANDSET_LIFTED && timeSinceLastDigitDialedMillisecond>DIALING_COMPLETED_TIMEOUT_MILLISECOND && dialedDigitsCounter>0){
+			gatewayState=GATEWAY_STATE_OUTGOING_CALL;
+			snprintf(buffer, sizeof(buffer), "Dialed %s\n", dialedDigits);
+			HAL_UART_Transmit_IT(&huart1, buffer, strlen(buffer));
+			gsmStartCall(&myGSM, dialedDigits);
+		}
+		if(myGSM.logicState==GSM_LOGIC_MODULE_RING){						//there is an incoming call from a GSM module
+			if(myDialing.Handset_State==HANDSET_ON_HOOK){ 					//if handset on hook
+				ringFrontPanel(&myRing, RINGER_RINGING_BURST); 				//keep on ringing
+			}
+			else{ 															//handset lifted
+				gsmAnswerIncomingCall(&myGSM);								//ask GSM module to accept incoming call
+				ringFrontPanel(&myRing, RINGER_OFF);						//stop ringing
+				gatewayState=GATEWAY_STATE_INCOMING_CALL;					//change state
+			}
+		}
+		else																//there is no incoming call from the GSM module
+		{
+			ringFrontPanel(&myRing, RINGER_OFF);							//stop ringing, also when incomong call was not answered (NO CARRIER from GSM Module)
+		}
+		if(myDialing.Handset_State==HANDSET_LIFTED){						//if handset picked up
+			signalingFrontPanel(&mySignaling, 1);						//generate continuous tone
+		}
+		break;
+	case GATEWAY_STATE_OUTGOING_CALL:
+		if(myDialing.Handset_State==HANDSET_ON_HOOK){
+			gsmEndCall(&myGSM);												//request module to end the call
+			gatewayState=GATEWAY_STATE_INIT;								//go back to init state
+			memset(dialedDigits,'\0',sizeof(dialedDigits));					//forget dialed number
+			dialedDigitsCounter=0;
+			snprintf(buffer, sizeof(buffer), "HANDSET_ON_HOOK\n");
 			HAL_UART_Transmit_IT(&huart1, buffer, strlen(buffer));
 		}
+		signalingFrontPanel(&mySignaling, 0);								//do not generate tone during outgoing call
+
+		break;
+	case GATEWAY_STATE_INCOMING_CALL:
+		if(myDialing.Handset_State==HANDSET_ON_HOOK) //if handset back on the hook => end the call
+		{
+			gsmEndCall(&myGSM);
+			gatewayState=GATEWAY_STATE_INIT;
+		}
+		signalingFrontPanel(&mySignaling, 0);								//do not generate tone during incoming call
+
+		break;
 	}
 
     /* USER CODE END WHILE */
@@ -454,7 +500,7 @@ static void MX_GPIO_Init(void)
   HAL_GPIO_WritePin(GSM_POWER_ON_GPIO_Port, GSM_POWER_ON_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, POTS_RM_Pin|POTS_FR_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOB, POTS_RM_Pin|POTS_FR_Pin|LED_STAT_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : BLUEPILL_LED_Pin */
   GPIO_InitStruct.Pin = BLUEPILL_LED_Pin;
@@ -482,8 +528,8 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(POTS_SHK_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : POTS_RM_Pin POTS_FR_Pin */
-  GPIO_InitStruct.Pin = POTS_RM_Pin|POTS_FR_Pin;
+  /*Configure GPIO pins : POTS_RM_Pin POTS_FR_Pin LED_STAT_Pin */
+  GPIO_InitStruct.Pin = POTS_RM_Pin|POTS_FR_Pin|LED_STAT_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -525,6 +571,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			signalingCallback(&mySignaling);
 			ringCallback(&myRing);
 			gsmTimeKeeping(&myGSM);
+			if(timeSinceLastDigitDialedMillisecond<UINT16_MAX-1000/CALLBACK_FREQUENCY_HZ){
+				timeSinceLastDigitDialedMillisecond+=1000/CALLBACK_FREQUENCY_HZ;
+			}
 		}
 	}
 }

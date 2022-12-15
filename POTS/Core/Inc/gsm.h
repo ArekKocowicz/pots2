@@ -34,35 +34,30 @@ typedef enum
 }gsm_module_power_state_t;
 
 typedef struct gsm_t {
-	GPIO_TypeDef *port_GSM_POWER_ON;		//Port on which GSM_WAKE pin is connected
-	uint16_t pin_GSM_POWER_ON;				//Pin on which GSM_WAKE pin is connected
+	GPIO_TypeDef *port_GSM_POWER_ON;		//Port on which POWER_ON pin of the GSM module is connected
+	uint16_t pin_GSM_POWER_ON;				//Pin on which POWER_ON pin of the GSM module is connected
 
-	GPIO_TypeDef *port_GSM_LPG;			//Port on which GSM_LPG pin is connected
-	uint16_t pin_GSM_LPG;				//Pin on which GSM_LPG pin is connected
+	GPIO_TypeDef *port_GSM_LPG;				//Port on which LPG pin of the GMS module is connected
+	uint16_t pin_GSM_LPG;					//Pin on which LPG pin of the GSM module is connected
 
 
+	UART_HandleTypeDef *huart;				//pointer to handler of associated UART
 
-	UART_HandleTypeDef *huart;			//pointer to handler of associated UART
-
-	uint16_t timeKeepingPeriodMilliseconds; //what is the time period between calling time keeping routine
+	uint16_t timeKeepingPeriodMilliseconds; //what is the time period between calling gsmTimeKeeping
 
 	gsm_module_logic_state_t logicState;
 	uint16_t logicStateDurationMillisecon;	//
-
 
 	gsm_module_power_state_t powerState;
 	uint16_t powerStateDurationMillisecon;
 	GPIO_PinState LPG_PinState;
 
-	uint8_t uart_TX_buffer[16];
+	uint8_t uart_TX_buffer[32];
 
 	uint8_t uart_RX_counter;
 	uint8_t uart_RX_buffer[32];
 
-	uint8_t servicePending;
-
-
-
+//	uint8_t servicePending;
 }gsm_t;
 
 void gsmInit(gsm_t *myModule);
@@ -74,5 +69,6 @@ void gsmTimeKeeping(gsm_t *myModule);
 void gsmFrontPanel(gsm_t *myModule);
 void gsmAnswerIncomingCall(gsm_t *myModule);
 void gsmEndCall(gsm_t *myModule);
+void gsmStartCall(gsm_t *myModule, char *number);
 
 #endif /* INC_GSM_H_ */
