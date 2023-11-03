@@ -1,7 +1,10 @@
 gsm.c:10:6:gsmInit	16	static
-gsm.c:26:6:gsmUartReceiver	16	static
-gsm.c:40:6:gsmLogicStateChange	16	static
-gsm.c:46:6:gsmPowerStateChange	16	static
-gsm.c:52:6:gsmService	16	static
-gsm.c:109:6:gsmTimeKeeping	16	static
-gsm.c:120:6:gsmFrontPanel	16	static
+gsm.c:20:6:gsmUartReceiver	16	static
+gsm.c:34:6:gsmLogicStateChange	16	static
+gsm.c:40:6:gsmPowerStateChange	16	static
+gsm.c:46:6:gsmService	24	static
+gsm.c:114:6:gsmTimeKeeping	16	static
+gsm.c:125:6:gsmFrontPanel	16	static
+gsm.c:130:6:gsmAnswerIncomingCall	24	static
+gsm.c:140:6:gsmEndCall	24	static
+gsm.c:150:6:gsmStartCall	24	static

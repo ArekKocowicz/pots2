@@ -60,8 +60,8 @@ all: main-build
 main-build: pots2.elf secondary-outputs
 
 # Tool invocations
-pots2.elf: $(OBJS) $(USER_OBJS) D:\OneDrive\PROJEKTY\workspace\POTS_GSM\STM32F103C6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "pots2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"D:\OneDrive\PROJEKTY\workspace\POTS_GSM\STM32F103C6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="pots2.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+pots2.elf: $(OBJS) $(USER_OBJS) D:\OneDrive\PROJEKTY\learningGit\project1D_celaningUpPots2\POTS\STM32F103C6TX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "pots2.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"D:\OneDrive\PROJEKTY\learningGit\project1D_celaningUpPots2\POTS\STM32F103C6TX_FLASH.ld" --specs=nosys.specs -Wl,-Map="pots2.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 

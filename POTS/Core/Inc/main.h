@@ -59,22 +59,24 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define BLUEPILL_LED_Pin GPIO_PIN_13
-#define BLUEPILL_LED_GPIO_Port GPIOC
-#define GSM_LPG_Pin GPIO_PIN_0
-#define GSM_LPG_GPIO_Port GPIOA
-#define GSM_POWER_ON_Pin GPIO_PIN_1
-#define GSM_POWER_ON_GPIO_Port GPIOA
+#define GSM_POWER_ON_Pin GPIO_PIN_13
+#define GSM_POWER_ON_GPIO_Port GPIOC
+#define GSM_LPG_Pin GPIO_PIN_14
+#define GSM_LPG_GPIO_Port GPIOC
+#define LED1_Pin GPIO_PIN_4
+#define LED1_GPIO_Port GPIOA
+#define LED2_Pin GPIO_PIN_5
+#define LED2_GPIO_Port GPIOA
 #define AU_PWM_Pin GPIO_PIN_1
 #define AU_PWM_GPIO_Port GPIOB
+#define SW1_Pin GPIO_PIN_10
+#define SW1_GPIO_Port GPIOB
 #define POTS_SHK_Pin GPIO_PIN_12
 #define POTS_SHK_GPIO_Port GPIOB
 #define POTS_RM_Pin GPIO_PIN_13
 #define POTS_RM_GPIO_Port GPIOB
 #define POTS_FR_Pin GPIO_PIN_14
 #define POTS_FR_GPIO_Port GPIOB
-#define LED_STAT_Pin GPIO_PIN_15
-#define LED_STAT_GPIO_Port GPIOB
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

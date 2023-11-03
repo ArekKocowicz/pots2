@@ -26,6 +26,7 @@
 #include "pulse_dialing.h"
 #include "signaling.h"
 #include "ringing.h"
+#include "button.h"
 
 
 /* USER CODE END Includes */
@@ -67,6 +68,7 @@ gsm_t myGSM;
 pulse_dialing_machine_t myDialing;
 signaling_t mySignaling;
 ringer_t myRing;
+button_t myPowerOnButton;
 
 uint16_t timeSinceLastDigitDialedMillisecond=0;
 char dialedDigits[16];
@@ -174,6 +176,18 @@ int main(void)
   HAL_UART_Receive_IT(&huart1, &UART1_rxChar, 1);
   HAL_UART_Receive_IT(&huart2, &UART2_rxChar, 1);
 
+  HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+  HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+
+
+  ///////////////////////////////////////////////////////////////
+  //initialization of power on button////////////////////////////
+  ///////////////////////////////////////////////////////////////
+  myPowerOnButton.pin_BUTTON=SW1_Pin;
+  myPowerOnButton.port_BUTTON=SW1_GPIO_Port;
+  myPowerOnButton.timeKeepingPeriodMilliseconds=1000/CALLBACK_FREQUENCY_HZ;
+  buttonInit(&myPowerOnButton);
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -181,10 +195,20 @@ int main(void)
   while (1)
   {
     gsmService(&myGSM);														//service GSM module
-    if(myGSM.LPG_PinState==GPIO_PIN_SET)										//copy LPG pin state with invertet logic to the status LED
-    	HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_RESET);
+    if(myGSM.LPG_PinState==GPIO_PIN_SET)										//copy LPG pin state with inverted logic to the status LED
+    	HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
     else
-		HAL_GPIO_WritePin(LED_STAT_GPIO_Port, LED_STAT_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_SET);
+
+
+    if(myPowerOnButton.actionFlag==BUTTON_ACTION_FLAG_SET){
+    	myPowerOnButton.actionFlag=BUTTON_ACTION_NO_FLAG;
+    	if(myPowerOnButton.buttonRequestedState==BUTTON_STATE_ON)				//copy high level button state to the second status led
+			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_SET);
+		else
+			HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
+    }
+
 
 
     if(myDialing.dialedDigit>-1){
@@ -494,26 +518,13 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(BLUEPILL_LED_GPIO_Port, BLUEPILL_LED_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GSM_POWER_ON_GPIO_Port, GSM_POWER_ON_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOB, POTS_RM_Pin|POTS_FR_Pin|LED_STAT_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LED1_Pin|LED2_Pin, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : BLUEPILL_LED_Pin */
-  GPIO_InitStruct.Pin = BLUEPILL_LED_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(BLUEPILL_LED_GPIO_Port, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : GSM_LPG_Pin */
-  GPIO_InitStruct.Pin = GSM_LPG_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GSM_LPG_GPIO_Port, &GPIO_InitStruct);
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, POTS_RM_Pin|POTS_FR_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : GSM_POWER_ON_Pin */
   GPIO_InitStruct.Pin = GSM_POWER_ON_Pin;
@@ -522,14 +533,33 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GSM_POWER_ON_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : GSM_LPG_Pin */
+  GPIO_InitStruct.Pin = GSM_LPG_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  HAL_GPIO_Init(GSM_LPG_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pins : LED1_Pin LED2_Pin */
+  GPIO_InitStruct.Pin = LED1_Pin|LED2_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : SW1_Pin */
+  GPIO_InitStruct.Pin = SW1_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(SW1_GPIO_Port, &GPIO_InitStruct);
+
   /*Configure GPIO pin : POTS_SHK_Pin */
   GPIO_InitStruct.Pin = POTS_SHK_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(POTS_SHK_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : POTS_RM_Pin POTS_FR_Pin LED_STAT_Pin */
-  GPIO_InitStruct.Pin = POTS_RM_Pin|POTS_FR_Pin|LED_STAT_Pin;
+  /*Configure GPIO pins : POTS_RM_Pin POTS_FR_Pin */
+  GPIO_InitStruct.Pin = POTS_RM_Pin|POTS_FR_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
@@ -556,7 +586,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		gsmUartReceiver(&myGSM, UART2_rxChar);
 		HAL_UART_Receive_IT(&huart2, &UART2_rxChar, 1);
 	}
-
 }
 
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
@@ -571,6 +600,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim)
 			signalingCallback(&mySignaling);
 			ringCallback(&myRing);
 			gsmTimeKeeping(&myGSM);
+			buttonTimeKeeping(&myPowerOnButton);
 			if(timeSinceLastDigitDialedMillisecond<UINT16_MAX-1000/CALLBACK_FREQUENCY_HZ){
 				timeSinceLastDigitDialedMillisecond+=1000/CALLBACK_FREQUENCY_HZ;
 			}

@@ -1,0 +1,2 @@
+button.c:10:6:buttonInit	16	static
+button.c:18:6:buttonTimeKeeping	16	static
